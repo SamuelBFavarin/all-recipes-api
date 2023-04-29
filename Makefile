@@ -6,7 +6,7 @@ run-data-pipeline:    ./data-pipeline/Dockerfile
 
 	echo "Data Pipeline Process started"
 	docker build -t ${PIPELINE_NAME}:${TAG} -f ./data-pipeline/Dockerfile .
-	docker run -t ${PIPELINE_NAME}:${TAG}
+	docker run -v $(PWD)/data-pipeline/datalake:/app/datalake -t ${PIPELINE_NAME}:${TAG}
 
 run-api-server:		./api/Dockerfile
 

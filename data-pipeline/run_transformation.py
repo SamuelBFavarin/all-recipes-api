@@ -70,8 +70,8 @@ def transform_data(ingredients: List[dict], recipes: List[dict]) -> List[dict]:
 if __name__ == "__main__":
 
     # load json
-    ingredients = read_json('/Users/samuel/Documents/GitHub/all-recipes-api/data-pipeline/data/raw/ingredients.json')
-    recipes = read_json('/Users/samuel/Documents/GitHub/all-recipes-api/data-pipeline/data/raw/recipes.json')
+    ingredients = read_json('/app/datalake/raw/ingredients.json')
+    recipes = read_json('/app/datalake/raw/recipes.json')
 
     # clean proccess
     recipes_cleaned = clean_recipe_ingredients(recipes)
@@ -80,9 +80,9 @@ if __name__ == "__main__":
     final_data = transform_data(ingredients, recipes)
 
     # store final data as .json and .csv
-    write_json('/Users/samuel/Documents/GitHub/all-recipes-api/data-pipeline/data/clean/recipes_ingredients_2.json', final_data)
-    df = pd.read_json('/Users/samuel/Documents/GitHub/all-recipes-api/data-pipeline/data/clean/recipes_ingredients_2.json')
-    df.to_csv('/Users/samuel/Documents/GitHub/all-recipes-api/data-pipeline/data/clean/recipes_ingredients_2.csv')
+    write_json('/app/datalake/clean/recipes_ingredients_2.json', final_data)
+    df = pd.read_json('/app/datalake/clean/recipes_ingredients_2.json')
+    df.to_csv('/app/datalake/clean/recipes_ingredients_2.csv')
 
     # Display the DataFrame
     print(df)

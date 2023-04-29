@@ -1,6 +1,7 @@
+from typing import List
 import pandas as pd
 import logging
-from typing import List
+import os
 
 
 class ApiCore:
@@ -9,11 +10,14 @@ class ApiCore:
         return super().__new__(cls)
 
     def __init__(self):
-        self.df_clean_recipes_ingredients = self.__load_data("/app/datalake/clean/recipes_ingredients_2.csv")
+        self.df_clean_recipes_ingredients = self.__load_data(self.__get_path_last_clean_table())
         self.df_raw_ingredients = self.__load_data("/app/datalake/raw/ingredients.json")
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(recipes_ingredients={self.df_clean_recipes_ingredients})"
+
+    def __get_path_last_clean_table(self) -> str:
+        return f"/app/datalake/clean/{os.listdir('/app/datalake/clean')[0]}"
 
     def __load_data(self, data_path:str) -> pd.DataFrame | None:
 
@@ -31,6 +35,7 @@ class ApiCore:
 
     def get_most_related_ingredients(self, ingredient: str) -> dict:
 
+        ingredient = ingredient.lower()
         ingredient_df = self.df_clean_recipes_ingredients[self.df_clean_recipes_ingredients['ingredient_name'] == ingredient]
         others_ingredients =  self.df_clean_recipes_ingredients[self.df_clean_recipes_ingredients['ingredient_name'] != ingredient]
 

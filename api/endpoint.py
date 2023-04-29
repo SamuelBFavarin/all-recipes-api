@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from core import ApiCore
 
 app = FastAPI()
@@ -7,9 +7,9 @@ app = FastAPI()
 def get_ingredient_cooccurrence(ingredient: str):
 
     core = ApiCore()
-    ingredients = core.get_most_related_ingredients(ingredient)
 
-    return {
-        'ingredient': ingredient,
-        'cooccurrence': ingredients
-    }
+    if core.is_valid_ingredient(ingredient):
+        cooccurrence_ingredients = core.get_most_related_ingredients(ingredient)
+        return {'ingredient': ingredient, 'cooccurrence': cooccurrence_ingredients}
+    else:
+        raise HTTPException(status_code=404, detail="Invalid ingredient")

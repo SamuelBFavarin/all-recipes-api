@@ -18,9 +18,8 @@ LIMIT 10;
 SELECT
   recipe_id,
   recipe_name,
-  ARRAY_AGG(ingredient_name) AS ingredients,
   ARRAY_LENGTH(ARRAY_AGG(ingredient_name)) AS total_similar_ingredients
-FROM `dev-pineapple-pipeline.dev_recipes.recipes` AS recipe
+FROM df AS recipe
 WHERE recipe.ingredient_name IN ('raisins', 'bananas', 'raspberries', 'blueberries', 'dried cranberries', 'golden raisins', 'blackberries')
 GROUP BY 1, 2
 ORDER BY 4 DESC

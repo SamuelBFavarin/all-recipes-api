@@ -1,4 +1,5 @@
 from typing import List
+from model import Recipe
 import pandas as pd
 import logging
 import os
@@ -41,23 +42,15 @@ class ApiCore:
 
         merged_df = pd.merge(ingredient_df, others_ingredients, on='recipe_id', suffixes=('_selected', ''))
         result_df = merged_df.groupby('ingredient_name').size().reset_index(name='total')
-        result_df = result_df.sort_values('total', ascending=False).head(10)
+        result_df = result_df.sort_values('total', ascending=False).head(5)
         return result_df.to_dict(orient='records')
 
-    def get_most_similar_recipes(self, ingredients: List[str]) -> pd.DataFrame:
+    def get_most_similar_recipes(self, recipe: Recipe) -> dict:
+
+        ingredients = [ingredient.name.lower() for ingredient in recipe.ingredients]
 
         filtered_df = self.df_clean_recipes_ingredients[self.df_clean_recipes_ingredients['ingredient_name'].isin(ingredients)]
-        result_df = filtered_df.groupby(['recipe_id', 'recipe_name']).agg({'ingredient_name': lambda x: list(x), 'recipe_id': 'count'}).rename(columns={'ingredient_name': 'ingredients', 'recipe_id': 'total_similar_ingredients'})
-        result_df = result_df.sort_values('total_similar_ingredients', ascending=False).head(10)
-        return result_df
+        grouped_df = filtered_df.groupby(['recipe_id', 'recipe_name']).agg(total_similar_ingredients=('ingredient_name', 'count'))
+        result_df = grouped_df.sort_values(by='total_similar_ingredients', ascending=False).head(5)
 
-
-if __name__ == "__main__":
-
-    core = ApiCore()
-
-    df_res = core.get_most_related_ingredients('salt')
-    print(df_res)
-
-    df_res = core.get_most_similar_recipes(['milk', 'butter', 'egg', 'cocoa'])
-    print(df_res)
+        return result_df.to_dict(orient='list')

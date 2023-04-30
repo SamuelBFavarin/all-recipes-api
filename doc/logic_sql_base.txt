@@ -1,10 +1,11 @@
+This file shows the similar logic used to calc the related ingredients and the similarity ingredients
 
 -- MOST COMOM RELATED INGREDIENT
 SELECT
   recipes.ingredient_name,
   COUNT(1) AS total
-FROM df AS ingredient_selected
-INNER JOIN df AS recipes
+FROM `dev-pineapple-pipeline.dev_recipes.recipes` AS ingredient_selected
+INNER JOIN `dev-pineapple-pipeline.dev_recipes.recipes` AS recipes
   ON recipes.recipe_id = ingredient_selected.recipe_id
 WHERE
   ingredient_selected.ingredient_name = 'salt' AND
@@ -14,13 +15,33 @@ ORDER BY 2 DESC
 LIMIT 10;
 
 
--- CALC SIMILAR RECIPES BY TOTAL INGREDIENTS SHAREDS
+-- CALC SIMILAR RECIPES BY INGREDIENTS
+WITH all_recipes AS (
+  SELECT
+    recipe_id,
+    COUNT(1) AS total_ingredients
+  FROM `dev-pineapple-pipeline.dev_recipes.recipes` AS recipe
+  GROUP BY 1
+),
+
+match_recipes AS (
+  SELECT
+    recipe_id,
+    recipe_name,
+    COUNT(1) AS total_similar_ingredient,
+  FROM `dev-pineapple-pipeline.dev_recipes.recipes` AS recipe
+  WHERE recipe.ingredient_name IN ('sugar', 'milk', 'egg', 'bananas')
+  GROUP BY 1, 2
+  ORDER BY 3 DESC
+)
+
 SELECT
-  recipe_id,
-  recipe_name,
-  ARRAY_LENGTH(ARRAY_AGG(ingredient_name)) AS total_similar_ingredients
-FROM df AS recipe
-WHERE recipe.ingredient_name IN ('raisins', 'bananas', 'raspberries', 'blueberries', 'dried cranberries', 'golden raisins', 'blackberries')
-GROUP BY 1, 2
-ORDER BY 4 DESC
-LIMIT 5;
+  match_recipes.recipe_id,
+  match_recipes.recipe_name,
+  match_recipes.total_similar_ingredient,
+  ((match_recipes.total_similar_ingredient / total_ingredients) * 0.4) + ((match_recipes.total_similar_ingredient / 4) * 0.6) AS recipe_similarity,
+  all_recipes.total_ingredients,
+FROM all_recipes
+INNER JOIN match_recipes
+  ON match_recipes.recipe_id = all_recipes.recipe_id
+ORDER BY recipe_similarity DESC

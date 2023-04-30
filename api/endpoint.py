@@ -20,6 +20,4 @@ def post_recipe_duplicates(recipe_request: RecipeRequest):
 
     core = ApiCore()
     similar_recipes = core.get_most_similar_recipes(recipe_request.recipe)
-
-    print(similar_recipes)
     return {'duplicates': similar_recipes}

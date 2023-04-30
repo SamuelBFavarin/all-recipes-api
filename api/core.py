@@ -42,15 +42,31 @@ class ApiCore:
 
         merged_df = pd.merge(ingredient_df, others_ingredients, on='recipe_id', suffixes=('_selected', ''))
         result_df = merged_df.groupby('ingredient_name').size().reset_index(name='total')
-        result_df = result_df.sort_values('total', ascending=False).head(5)
+        result_df = result_df.sort_values('total', ascending=False).head(10)
         return result_df.to_dict(orient='records')
 
     def get_most_similar_recipes(self, recipe: Recipe) -> dict:
 
         ingredients = [ingredient.name.lower() for ingredient in recipe.ingredients]
+        df = self.df_clean_recipes_ingredients
 
-        filtered_df = self.df_clean_recipes_ingredients[self.df_clean_recipes_ingredients['ingredient_name'].isin(ingredients)]
-        grouped_df = filtered_df.groupby(['recipe_id', 'recipe_name']).agg(total_similar_ingredients=('ingredient_name', 'count'))
-        result_df = grouped_df.sort_values(by='total_similar_ingredients', ascending=False).head(5)
+        # create all_recipes sub-query
+        all_recipes = df.groupby('recipe_id').size().reset_index(name='total_ingredients')
 
-        return result_df.to_dict(orient='list')
+        # create match_recipes sub-query
+        match_recipes = df.loc[df['ingredient_name'].isin(ingredients)]
+        match_recipes = match_recipes.groupby(['recipe_id', 'recipe_name']).size().reset_index(name='total_similar_ingredient')
+        match_recipes = match_recipes.sort_values(by='total_similar_ingredient', ascending=False)
+
+        # join the sub-queries and calculate recipe similarity
+        result = all_recipes.merge(match_recipes, on='recipe_id')
+        result['recipe_similarity'] = (result['total_similar_ingredient'] / result['total_ingredients']) * 0.4 \
+                                    + (result['total_similar_ingredient'] / len(ingredients)) * 0.6
+
+        # select and order the final result
+        result = result[['recipe_id', 'recipe_name', 'recipe_similarity']]
+        result = result.sort_values(by='recipe_similarity', ascending=False)
+
+        # limit to top 5
+        result = result.head(5)
+        return result.to_dict(orient='records')

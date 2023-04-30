@@ -84,6 +84,7 @@ if __name__ == "__main__":
     recipes_cleaned = clean_recipe_ingredients(recipes)
 
     # transform proccess
+    print(f"Start transform raw data process {get_current_date_time()}")
     final_data = transform_data(ingredients, recipes)
 
     # store final data as .json and .csv

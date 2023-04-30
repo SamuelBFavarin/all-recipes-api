@@ -1,4 +1,5 @@
 from typing import List
+from model import Recipe
 import pandas as pd
 import logging
 import os
@@ -44,20 +45,28 @@ class ApiCore:
         result_df = result_df.sort_values('total', ascending=False).head(10)
         return result_df.to_dict(orient='records')
 
-    def get_most_similar_recipes(self, ingredients: List[str]) -> pd.DataFrame:
+    def get_most_similar_recipes(self, recipe: Recipe) -> dict:
 
-        filtered_df = self.df_clean_recipes_ingredients[self.df_clean_recipes_ingredients['ingredient_name'].isin(ingredients)]
-        result_df = filtered_df.groupby(['recipe_id', 'recipe_name']).agg({'ingredient_name': lambda x: list(x), 'recipe_id': 'count'}).rename(columns={'ingredient_name': 'ingredients', 'recipe_id': 'total_similar_ingredients'})
-        result_df = result_df.sort_values('total_similar_ingredients', ascending=False).head(10)
-        return result_df
+        ingredients = [ingredient.name.lower() for ingredient in recipe.ingredients]
+        df = self.df_clean_recipes_ingredients
 
+        # create all_recipes sub-query
+        all_recipes = df.groupby('recipe_id').size().reset_index(name='total_ingredients')
 
-if __name__ == "__main__":
+        # create match_recipes sub-query
+        match_recipes = df.loc[df['ingredient_name'].isin(ingredients)]
+        match_recipes = match_recipes.groupby(['recipe_id', 'recipe_name']).size().reset_index(name='total_similar_ingredient')
+        match_recipes = match_recipes.sort_values(by='total_similar_ingredient', ascending=False)
 
-    core = ApiCore()
+        # join the sub-queries and calculate recipe similarity
+        result = all_recipes.merge(match_recipes, on='recipe_id')
+        result['recipe_similarity'] = (result['total_similar_ingredient'] / result['total_ingredients']) * 0.4 \
+                                    + (result['total_similar_ingredient'] / len(ingredients)) * 0.6
 
-    df_res = core.get_most_related_ingredients('salt')
-    print(df_res)
+        # select and order the final result
+        result = result[['recipe_id', 'recipe_name', 'recipe_similarity']]
+        result = result.sort_values(by='recipe_similarity', ascending=False)
 
-    df_res = core.get_most_similar_recipes(['milk', 'butter', 'egg', 'cocoa'])
-    print(df_res)
+        # limit to top 5
+        result = result.head(5)
+        return result.to_dict(orient='records')

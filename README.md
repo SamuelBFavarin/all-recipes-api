@@ -1,7 +1,7 @@
 # The all recipes API 🍝
 This repository contains a data pipeline process and an API designed to provide recipe information. The data pipeline processes, performs data cleaning and transformation, and stores the data in a datalake. The API provides endpoints for users to retrieve and filter similar recipes and common ingredients based on parameters. 
 
-## File Structure
+## File Structure 🍡
 
     all-recipes-api/
     ├── api/
@@ -38,7 +38,7 @@ This project is structured into several folders to organize the different parts 
 - The `setup` folder provides an easy way to set up the data lake structure. Running this process downloads all required files from GCP Storage buckets to your machine automatically. 
 - The `Makefile` provides an easy way to run all parts of the repo. For more datails, please, check the "How to run" documentation.
 
-## Project Architecture
+## Project Architecture 🍱
 
 This diagram illustrates the architecture of this project. The project is divided into two main parts: the data pipeline and the API.
 
@@ -66,3 +66,35 @@ The first endpoint `/ingredient-cooccurrence` identify ingredients that are comm
 The second endpoint `/recipe-duplicates` returns a list of the top 5 recipes that are most similar to the recipe presented by the user. The similarity between recipes is determined using the common ingredients between them. The similarity metric is calculated using the following equation:
 
 $similarity = \frac{TotalSimilarIngredient}{TotalIngredientsRecipeFound} \times 0.4 + \frac{TotalSimilarIngredient}{TotalIngredientsNewRecipe} \times 0.6$
+
+## How to execute 👨‍🍳
+
+
+To run the project, you need to meet the following requirements:
+-   Have Docker installed on your machine;
+-   Be able to run the Makefile using the `make` command on your terminal
+
+####  Step 1: 🥦
+To clone this repo to your local machine using GitHub CLI, run the following command in your terminal:
+
+`gh repo clone SamuelBFavarin/all-recipes-api`
+
+####  Step 2: 🧅
+To set up the datalake on your local machine, navigate to the root folder of the repository and run the following command in your terminal using the Makefile:
+
+`make run-datalake-setup`
+
+This will download the required datalake files and create the necessary folder structure on your local machine. If you encounter any issues, you can download the files directly from the [GCP Cloud Storage using this link](https://console.cloud.google.com/storage/browser/all-recipes-data).
+
+####  Step 3: 🍅
+To run the pipeline process that cleans and transforms the raw data into a cleaned dataset that maps the relationship between ingredients and recipes, run the following command in your terminal. Please note that this process may take up to 10 minutes to complete.
+
+`make run-data-pipeline`
+
+####  Step 4: 🥗
+The following command will start a `uvicorn` web server to provide access to the API. Once the server is running, you can access the API documentation and test the endpoints using the Swagger UI by opening this URL ([http://localhost:8000/docs](http://localhost:8000/docs)) in your web browser.
+ 
+`make run-api-server`
+
+
+![enter image description here](https://raw.githubusercontent.com/SamuelBFavarin/all-recipes-api/main/doc/endpoint_1.png)

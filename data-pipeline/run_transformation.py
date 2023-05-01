@@ -30,6 +30,7 @@ def __remove_special_chars(ingredient_phrase:str) -> str:
 def __convert_ingredient_list_to_str(ingredients: List[str]) -> str:
     return f" {' | '.join(ingredients)} "
 
+
 def clean_recipe_ingredients(recipes: List[dict]) -> List[dict]:
 
     for recipe in recipes:
@@ -65,6 +66,7 @@ def transform_data(ingredients: List[dict], recipes: List[dict]) -> List[dict]:
 
     return data_ingredient_recipe
 
+
 def get_current_date_time(is_file_format:bool = False) -> str:
     if is_file_format:
         return datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -85,7 +87,7 @@ if __name__ == "__main__":
 
     # transform proccess
     print(f"Start transform raw data process {get_current_date_time()}")
-    final_data = transform_data(ingredients, recipes)
+    final_data = transform_data(ingredients, recipes_cleaned)
 
     # store final data as .json and .csv
     print(f"Start store data process {get_current_date_time()}")
